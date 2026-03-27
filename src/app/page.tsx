@@ -135,7 +135,7 @@ export default function Home() {
         </div>
       ) : tasks.length === 0 ? (
         <div className="empty-state">
-          No tasks found. You're all caught up! ✨
+          No tasks found. You&apos;re all caught up! ✨
         </div>
       ) : (
         <ul className="task-list">
