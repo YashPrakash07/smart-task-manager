@@ -55,7 +55,8 @@ Please write a short, friendly plain-English paragraph summarizing what they nee
     });
   } catch (error) {
     console.error('Failed to generate summary:', error);
-    return new Response(JSON.stringify({ error: 'Failed to generate summary', details: (error as any).message }), {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(JSON.stringify({ error: 'Failed to generate summary', details: errorMessage }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
