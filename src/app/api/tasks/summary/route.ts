@@ -25,7 +25,7 @@ Please write a short, friendly plain-English paragraph summarizing what they nee
     
     // Use streaming
     const result = await ai.models.generateContentStream({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-1.5-flash',
       contents: prompt,
     });
 
