@@ -25,7 +25,7 @@ Please write a short, friendly plain-English paragraph summarizing what they nee
     
     // Use streaming
     const result = await ai.models.generateContentStream({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash-lite',
       contents: prompt,
     });
 
@@ -55,7 +55,7 @@ Please write a short, friendly plain-English paragraph summarizing what they nee
     });
   } catch (error) {
     console.error('Failed to generate summary:', error);
-    return new Response(JSON.stringify({ error: 'Failed to generate summary' }), {
+    return new Response(JSON.stringify({ error: 'Failed to generate summary', details: (error as any).message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
