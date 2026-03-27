@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import prisma from '@/lib/prisma';
 
@@ -10,7 +9,9 @@ export async function GET() {
     });
 
     if (tasks.length === 0) {
-      return NextResponse.json({ summary: "You have no pending tasks. Enjoy your day!" });
+      return new Response(JSON.stringify({ summary: "You have no pending tasks. Enjoy your day!" }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     const taskList = tasks.map((t: { title: string }) => `- ${t.title}`).join('\n');
@@ -21,14 +22,42 @@ ${taskList}
 Please write a short, friendly plain-English paragraph summarizing what they need to do today. Give them a quick word of encouragement, but keep it concise and actionable.`;
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+    
+    // Use streaming
+    const result = await ai.models.generateContentStream({
+      model: 'gemini-2.0-flash',
       contents: prompt,
     });
 
-    return NextResponse.json({ summary: response.text });
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of result) {
+            const text = chunk.text;
+            if (text) {
+              controller.enqueue(encoder.encode(text));
+            }
+          }
+        } catch (err) {
+          console.error('Streaming error:', err);
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Transfer-Encoding': 'chunked',
+      },
+    });
   } catch (error) {
     console.error('Failed to generate summary:', error);
-    return NextResponse.json({ error: 'Failed to generate summary' }, { status: 500 });
+    return new Response(JSON.stringify({ error: 'Failed to generate summary' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }
