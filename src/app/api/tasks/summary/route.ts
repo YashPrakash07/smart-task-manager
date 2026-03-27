@@ -13,7 +13,7 @@ export async function GET() {
       return NextResponse.json({ summary: "You have no pending tasks. Enjoy your day!" });
     }
 
-    const taskList = tasks.map((t) => `- ${t.title}`).join('\n');
+    const taskList = tasks.map((t: { title: string }) => `- ${t.title}`).join('\n');
     const prompt = `You are a helpful and kind assistant providing a daily briefing for the user's task manager.
 Here are the user's pending tasks:
 ${taskList}
