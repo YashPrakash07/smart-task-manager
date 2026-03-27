@@ -108,79 +108,93 @@ export default function Home() {
   };
 
   return (
-    <main className="container">
-      <header className="header">
-        <h1 className="title">Smart Task Manager</h1>
-        <p className="subtitle">Premium Task Management with AI Briefings</p>
-      </header>
+    <main className="app-layout">
+      {/* Task List Column */}
+      <section className="main-content">
+        <header className="header">
+          <h1 className="title">Smart Task Manager</h1>
+          <p className="subtitle">Premium Task Management with AI Briefings</p>
+        </header>
 
-      <button 
-        className="btn btn-secondary" 
-        onClick={generateBriefing}
-        disabled={generating}
-      >
-        {generating ? <div className="spinner" /> : <Sparkles size={18} />}
-        {generating ? 'Summoning AI...' : 'Generate AI Briefing'}
-      </button>
+        <form className="form" onSubmit={addTask}>
+          <input
+            type="text"
+            className="input"
+            placeholder="What needs to be done?"
+            value={newTask}
+            onChange={(e) => setNewTask(e.target.value)}
+            disabled={addingTask}
+            required
+          />
+          <button type="submit" className="btn btn-primary" disabled={addingTask || !newTask.trim()}>
+            {addingTask ? <div className="spinner" /> : <Plus size={18} />}
+            Add Task
+          </button>
+        </form>
 
-      {briefing && (
-        <div className="briefing">
-          <div className="briefing-title">
-            <Sparkles size={16} /> Daily Briefing
+        {loading ? (
+          <div className="empty-state">
+            <div>Loading tasks...</div>
           </div>
-          <div>{briefing}</div>
-        </div>
-      )}
-
-      <form className="form" onSubmit={addTask}>
-        <input
-          type="text"
-          className="input"
-          placeholder="What needs to be done?"
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
-          disabled={addingTask}
-          required
-        />
-        <button type="submit" className="btn btn-primary" disabled={addingTask || !newTask.trim()}>
-          {addingTask ? <div className="spinner" /> : <Plus size={18} />}
-          Add Task
-        </button>
-      </form>
-
-      {loading ? (
-        <div className="empty-state">
-          <div>Loading tasks...</div>
-        </div>
-      ) : tasks.length === 0 ? (
-        <div className="empty-state">
-          No tasks found. You&apos;re all caught up! ✨
-        </div>
-      ) : (
-        <ul className="task-list">
-          {tasks.map((task) => (
-            <li key={task.id} className={`task-item ${task.completed ? 'task-completed' : ''}`}>
-              <div className="task-content">
-                <button
-                  className={`btn-toggle ${task.completed ? 'completed' : ''}`}
-                  onClick={() => toggleTask(task)}
-                  aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
+        ) : tasks.length === 0 ? (
+          <div className="empty-state">
+            No tasks found. You&apos;re all caught up! ✨
+          </div>
+        ) : (
+          <ul className="task-list">
+            {tasks.map((task) => (
+              <li key={task.id} className={`task-item ${task.completed ? 'task-completed' : ''}`}>
+                <div className="task-content">
+                  <button
+                    className={`btn-toggle ${task.completed ? 'completed' : ''}`}
+                    onClick={() => toggleTask(task)}
+                    aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
+                  >
+                    {task.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                  </button>
+                  <span className="task-title">{task.title}</span>
+                </div>
+                <button 
+                  className="btn btn-danger"
+                  onClick={() => deleteTask(task.id)}
+                  aria-label="Delete Task"
                 >
-                  {task.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                  <Trash2 size={16} />
                 </button>
-                <span className="task-title">{task.title}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* AI Sidebar Column */}
+      <aside className="sidebar">
+        <div className="briefing-card">
+          <button 
+            className="btn btn-secondary" 
+            onClick={generateBriefing}
+            disabled={generating}
+          >
+            {generating ? <div className="spinner" /> : <Sparkles size={18} />}
+            {generating ? 'Summoning AI...' : 'Generate AI Briefing'}
+          </button>
+
+          {briefing && (
+            <div className="briefing">
+              <div className="briefing-title">
+                <Sparkles size={16} /> Daily Briefing
               </div>
-              <button 
-                className="btn btn-danger"
-                onClick={() => deleteTask(task.id)}
-                aria-label="Delete Task"
-              >
-                <Trash2 size={16} />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+              <div>{briefing}</div>
+            </div>
+          )}
+          
+          {!briefing && !generating && (
+            <div className="empty-state" style={{ border: 'none', background: 'transparent', padding: '1rem 0' }}>
+              <p style={{ fontSize: '0.85rem' }}>Want a quick summary of your day? Click the button above to summon the AI!</p>
+            </div>
+          )}
+        </div>
+      </aside>
     </main>
   );
 }
