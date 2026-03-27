@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Trash2, Plus } from 'lucide-react';
+import { Sparkles, Trash2, Plus, CheckCircle2, Circle } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -66,6 +66,25 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Failed to delete task', error);
+    }
+  };
+
+  const toggleTask = async (task: Task) => {
+    try {
+      const res = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed: !task.completed }),
+      });
+      if (res.ok) {
+        setTasks(
+          tasks.map((t) =>
+            t.id === task.id ? { ...t, completed: !t.completed } : t
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Failed to toggle task', error);
     }
   };
 
@@ -140,8 +159,17 @@ export default function Home() {
       ) : (
         <ul className="task-list">
           {tasks.map((task) => (
-            <li key={task.id} className="task-item">
-              <span className="task-title">{task.title}</span>
+            <li key={task.id} className={`task-item ${task.completed ? 'task-completed' : ''}`}>
+              <div className="task-content">
+                <button
+                  className={`btn-toggle ${task.completed ? 'completed' : ''}`}
+                  onClick={() => toggleTask(task)}
+                  aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
+                >
+                  {task.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                </button>
+                <span className="task-title">{task.title}</span>
+              </div>
               <button 
                 className="btn btn-danger"
                 onClick={() => deleteTask(task.id)}

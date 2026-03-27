@@ -213,3 +213,40 @@ body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Completion feature styles */
+.task-completed {
+  background-color: transparent;
+  border-style: dashed;
+}
+
+.task-completed .task-title {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.task-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+  transition: color 0.2s, transform 0.2s;
+}
+
+.btn-toggle:hover {
+  color: var(--primary);
+  transform: scale(1.1);
+}
+
+.btn-toggle.completed {
+  color: var(--primary);
+}
