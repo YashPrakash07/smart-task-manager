@@ -1,68 +1,46 @@
-# Smart Task Manager with AI Briefing
+# 🚀 Smart Task Manager (AI-Powered)
 
-A minimal, production-quality full-stack task management application built with Next.js App Router, Prisma, SQLite, and the Google Gemini API.
+A premium, full-stack productivity dashboard built with **Next.js 15**, **TypeScript**, and **Google Gemini AI**. 
 
-## Features
-- **Add, View, and Delete** tasks
-- **Persist data** securely via an embedded SQLite database using Prisma
-- **AI Daily Briefing**: Connects to the Gemini AI API to provide a friendly plain-English summary of your remaining tasks for the day
-- **Premium UI**: Crafted purely with vanilla CSS without UI libraries to showcase clean layouts, responsive design, and CSS variables
-- **Error Handling & Loading States**: The UI reacts gracefully when loading data or communicating with the AI service
+## ✨ Key Features
+- **Premium Light UI:** A sleek, minimal dashboard designed with modern glassmorphism principles.
+- **AI Streaming Briefing:** Real-time, word-by-word task summaries powered by Gemini 2.0 Flash.
+- **Live Notifications:** Elegant toast feedback for all user actions via `sonner`.
+- **Two-Column Layout:** A dedicated AI sidebar that feels like a professional productivity "engine".
+- **Robust Sync:** Persistence layer using **Prisma** and **SQLite**.
 
-## Tech Stack
-- **Frontend & Backend**: Next.js 15 (App Router, API Routes)
-- **Language**: TypeScript
-- **Database**: SQLite
-- **ORM**: Prisma (using v6 to avoid unsupported v7 features in initial setup)
-- **AI Integration**: `@google/genai` (Google Gemini 2.5 Flash)
-- **Icons**: `lucide-react`
+## 🛠️ Tech Stack
+- **Frontend:** Next.js (App Router), Lucide React, Sonner (Toasts).
+- **Backend:** Next.js API Routes, Google GenAI SDK.
+- **Database:** SQLite + Prisma ORM.
 
-## Setup Instructions
+## ⚡ Quick Start (Under 2 Minutes)
 
-### 1. Prerequisites
-- Node.js (v18 or higher)
-- NPM or another package manager
-
-### 2. Install Dependencies
+### 1. Clone & Install
 ```bash
+git clone https://github.com/YashPrakash07/smart-task-manager.git
+cd smart-task-manager
 npm install
 ```
 
-### 3. Environment Variables
-Copy the `.env.example` file to `.env`:
-```bash
-cp .env.example .env
-```
-Inside `.env`, make sure to provide your **Google Gemini API Key**:
-```
-GEMINI_API_KEY="your-api-key"
+### 2. Configure Environment
+Create a `.env` file in the root:
+```env
+DATABASE_URL="file:./dev.db"
+GEMINI_API_KEY="your_api_key_here"
 ```
 
-### 4. Setup Database
-Initialize the Prisma SQLite database and schema:
+### 3. Initialize Database
 ```bash
-npx prisma db push
+npx prisma migrate dev --name init
+npx prisma db seed
 ```
-*(This will automatically generate the Prisma Client for the application).*
 
-### 5. Start the Development Server
+### 4. Launch
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser to view the app!
+Visit `http://localhost:3000` and start deploying objectives!
 
-## Notes
+---
 
-### What Was Built
-I built a single-page Next.js App Router application. Using App Router allows frontend code and backend API routes (`/api/tasks`, `/api/tasks/[id]`, `/api/tasks/summary`) to reside together safely, decreasing context switching and deployment complexity. I picked SQLite for an easy portable setup, and used `@google/genai` to generate an AI briefing on pending tasks using a prompt that ensures concise, actionable output.
-
-### Trade-offs Made
-- **SQLite over PostgreSQL**: I chose SQLite so reviewers can install, set up and verify the application without spinning up docker containers or provisioning a Postgres database.
-- **Vanilla CSS over Tailwind**: As per instructions/preference, I utilized vanilla CSS variables instead of Tailwind CSS or UI libraries to accomplish a strong visual aesthetic.
-- **Client-Side Data Fetching vs SSR**: I used a client-side API approach to fetching tasks on component mount in order to elegantly and simply handle Loading states (`"Loading tasks..."`) directly within standard React hooks, as well as handling error generation for the briefing.
-
-### What I Would Improve With More Time
-- Implement **Server Actions** in Next.js 15 instead of REST API routes.
-- Add **Authentication (NextAuth)** to support multiple isolated users.
-- Add ability to mark tasks as `complete` / toggle instead of just deleting them, along with sorting views.
-- **Streaming Response**: Hook up OpenAI or Gemini streaming to stream the daily briefing in real-time chunk-by-chunk to the React interface to lower perceived latency.

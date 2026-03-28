@@ -1,8 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Trash2, Plus, CheckCircle2, Circle, LayoutDashboard, BrainCircuit } from 'lucide-react';
+import { LayoutDashboard } from 'lucide-react';
 import { toast } from 'sonner';
+import { TaskForm } from '@/components/TaskForm';
+import { TaskItem } from '@/components/TaskItem';
+import { BriefingCard } from '@/components/BriefingCard';
 
 interface Task {
   id: string;
@@ -13,7 +16,6 @@ interface Task {
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [newTask, setNewTask] = useState('');
   const [loading, setLoading] = useState(true);
   const [briefing, setBriefing] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -35,22 +37,17 @@ export default function Home() {
     }
   };
 
-  const addTask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTask.trim() || addingTask) return;
-    
+  const addTask = async (title: string) => {
     setAddingTask(true);
-    const taskTitle = newTask;
     try {
       const res = await fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: taskTitle }),
+        body: JSON.stringify({ title }),
       });
       if (res.ok) {
         const addedTask = await res.json();
         setTasks([addedTask, ...tasks]);
-        setNewTask('');
         setBriefing(null);
         toast.success('Task deployed successfully');
       } else {
@@ -161,58 +158,16 @@ export default function Home() {
       </header>
 
       <div className="app-container">
-        {/* Sidebar / AI Column */}
         <aside className="sidebar">
-          <div className="sidebar-section">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-              <BrainCircuit size={20} style={{ color: '#4f46e5' }} />
-              <h2 style={{ margin: 0 }}>AI System</h2>
-            </div>
-            
-            <button 
-              className="btn btn-secondary" 
-              onClick={generateBriefing}
-              disabled={generating}
-              style={{ marginBottom: '1.5rem' }}
-            >
-              {generating ? <div className="spinner" /> : <Sparkles size={18} />}
-              {generating ? 'Streaming...' : 'Generate Daily Briefing'}
-            </button>
-
-            {briefing !== null && (
-              <div className="briefing-box">
-                <div className="briefing-header">
-                  <Sparkles size={14} /> Briefing
-                </div>
-                <div>{briefing || 'Initializing neural link...'}</div>
-              </div>
-            )}
-            
-            {briefing === null && !generating && (
-              <div className="empty-state" style={{ padding: '2rem 1rem', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #e2e8f0' }}>
-                <p style={{ fontSize: '0.875rem' }}>Want a quick summary? Let our AI analyze your tasks!</p>
-              </div>
-            )}
-          </div>
+          <BriefingCard 
+            briefing={briefing} 
+            generating={generating} 
+            onGenerate={generateBriefing} 
+          />
         </aside>
 
-        {/* Main Section */}
         <section className="main-view">
-          <form className="form" onSubmit={addTask}>
-            <input
-              type="text"
-              className="input"
-              placeholder="Deploy a new objective..."
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              disabled={addingTask}
-              required
-            />
-            <button type="submit" className="btn btn-primary" disabled={addingTask || !newTask.trim()}>
-              {addingTask ? <div className="spinner" /> : <Plus size={20} />}
-              <span>Add Task</span>
-            </button>
-          </form>
+          <TaskForm onAdd={addTask} disabled={addingTask} />
 
           {loading ? (
             <div className="empty-state">
@@ -227,25 +182,12 @@ export default function Home() {
           ) : (
             <div className="task-list">
               {tasks.map((task) => (
-                <div key={task.id} className={`task-item ${task.completed ? 'task-completed' : ''}`}>
-                  <div className="task-content">
-                    <button
-                      className={`btn-toggle ${task.completed ? 'completed' : ''}`}
-                      onClick={() => toggleTask(task)}
-                      aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
-                    >
-                      {task.completed ? <CheckCircle2 size={24} /> : <Circle size={24} />}
-                    </button>
-                    <span className="task-title">{task.title}</span>
-                  </div>
-                  <button 
-                    className="btn-delete"
-                    onClick={() => deleteTask(task.id, task.title)}
-                    aria-label="Remove Objective"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
+                <TaskItem 
+                  key={task.id} 
+                  task={task} 
+                  onToggle={toggleTask} 
+                  onDelete={deleteTask} 
+                />
               ))}
             </div>
           )}
