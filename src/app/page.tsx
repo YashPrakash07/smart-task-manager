@@ -7,6 +7,9 @@ import { TaskForm } from '@/components/TaskForm';
 import { TaskItem } from '@/components/TaskItem';
 import { BriefingCard } from '@/components/BriefingCard';
 
+/**
+ * Interface representing a task object from the database.
+ */
 interface Task {
   id: string;
   title: string;
@@ -15,16 +18,21 @@ interface Task {
 }
 
 export default function Home() {
+  // --- STATE MANAGEMENT ---
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [briefing, setBriefing] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [addingTask, setAddingTask] = useState(false);
 
+  // Initialize workspace by fetching tasks on first mount
   useEffect(() => {
     fetchTasks();
   }, []);
 
+  /**
+   * Fetches the current task list from the API and updates local state.
+   */
   const fetchTasks = async () => {
     try {
       const res = await fetch('/api/tasks');
@@ -37,6 +45,10 @@ export default function Home() {
     }
   };
 
+  /**
+   * Handles adding a new task objective to the database and UI.
+   * @param title The name of the task to be created.
+   */
   const addTask = async (title: string) => {
     setAddingTask(true);
     try {
@@ -47,6 +59,7 @@ export default function Home() {
       });
       if (res.ok) {
         const addedTask = await res.json();
+        // Prepend new task and clear any existing AI briefing
         setTasks([addedTask, ...tasks]);
         setBriefing(null);
         toast.success('Task deployed successfully');
@@ -61,6 +74,11 @@ export default function Home() {
     }
   };
 
+  /**
+   * Permanently removes a task objective.
+   * @param id Unique identifier of the task.
+   * @param title Title of the task (for the toast notification).
+   */
   const deleteTask = async (id: string, title: string) => {
     try {
       const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
@@ -77,6 +95,11 @@ export default function Home() {
     }
   };
 
+  /**
+   * Toggles the completion status of a task and re-sorts the list.
+   * Completed tasks move to the bottom.
+   * @param task The task object to be toggled.
+   */
   const toggleTask = async (task: Task) => {
     try {
       const res = await fetch(`/api/tasks/${task.id}`, {
@@ -84,16 +107,20 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ completed: !task.completed }),
       });
+      
       if (res.ok) {
+        // Map the updated state and then apply immediate re-sorting
         const updatedTasks = tasks.map((t) =>
           t.id === task.id ? { ...t, completed: !t.completed } : t
         );
         
-        // Re-sort: Active tasks first (createdAt DESC), then Completed tasks (createdAt DESC)
+        // RE-SORTING LOGIC: Active tasks (top) vs Completed tasks (bottom)
         const sortedTasks = [...updatedTasks].sort((a, b) => {
           if (a.completed === b.completed) {
+            // Tie-break with creation date (newest first)
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
           }
+          // Move completed tasks to the bottom
           return a.completed ? 1 : -1;
         });
         
@@ -108,6 +135,9 @@ export default function Home() {
     }
   };
 
+  /**
+   * Connects to the AI summary engine and streams the daily briefing response.
+   */
   const generateBriefing = async () => {
     if (generating) return;
     setGenerating(true);
@@ -117,15 +147,18 @@ export default function Home() {
     try {
       const res = await fetch('/api/tasks/summary');
       
+      // Handle standard API errors
       if (!res.ok) {
         setBriefing("Ah! I couldn't generate the briefing at this moment. 😔");
         toast.error('AI service temporarily unavailable', { id: toastId });
         return;
       }
 
+      // INITIALIZE STREAM READING
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       
+      // Fallback for browsers that don't fully support streaming response body
       if (!reader || !decoder) {
         const data = await res.json();
         setBriefing(data.summary);
@@ -136,13 +169,14 @@ export default function Home() {
       toast.dismiss(toastId);
 
       let content = '';
+      // LOOP UNTIL STREAM IS CLOSED: Reads and joins text chunks
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         
         const chunk = decoder.decode(value, { stream: true });
         content += chunk;
-        setBriefing(content);
+        setBriefing(content); // Update UI incrementally for typing effect
       }
       
       toast.success('Briefing complete! ✨');
@@ -157,6 +191,7 @@ export default function Home() {
 
   return (
     <div className="app-wrapper">
+      {/* GLOBAL HEADER */}
       <header className="app-header">
         <div className="brand">
           <h1>SmartTask</h1>
@@ -166,6 +201,7 @@ export default function Home() {
       </header>
 
       <div className="app-container">
+        {/* SIDE PANEL: Handles AI Briefing interactions */}
         <aside className="sidebar">
           <BriefingCard 
             briefing={briefing} 
@@ -174,9 +210,11 @@ export default function Home() {
           />
         </aside>
 
+        {/* MAIN FOCUS AREA: Task Management */}
         <section className="main-view">
           <TaskForm onAdd={addTask} disabled={addingTask} />
 
+          {/* DYNAMIC LIST VIEW: Handles Loading, Empty, and Task states */}
           {loading ? (
             <div className="empty-state">
               <div className="spinner" style={{ margin: '0 auto 1.5rem' }}></div>
