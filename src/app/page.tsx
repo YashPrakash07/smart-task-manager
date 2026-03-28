@@ -85,11 +85,19 @@ export default function Home() {
         body: JSON.stringify({ completed: !task.completed }),
       });
       if (res.ok) {
-        setTasks(
-          tasks.map((t) =>
-            t.id === task.id ? { ...t, completed: !t.completed } : t
-          )
+        const updatedTasks = tasks.map((t) =>
+          t.id === task.id ? { ...t, completed: !t.completed } : t
         );
+        
+        // Re-sort: Active tasks first (createdAt DESC), then Completed tasks (createdAt DESC)
+        const sortedTasks = [...updatedTasks].sort((a, b) => {
+          if (a.completed === b.completed) {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          }
+          return a.completed ? 1 : -1;
+        });
+        
+        setTasks(sortedTasks);
         toast.success(task.completed ? 'Task marked active' : 'Task completed! ✨');
       } else {
         toast.error('Failed to update status');

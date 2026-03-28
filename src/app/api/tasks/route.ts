@@ -9,7 +9,10 @@ const TaskSchema = z.object({
 export async function GET() {
   try {
     const tasks = await prisma.task.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: [
+        { completed: 'asc' },
+        { createdAt: 'desc' },
+      ],
     });
     return NextResponse.json(tasks);
   } catch {
